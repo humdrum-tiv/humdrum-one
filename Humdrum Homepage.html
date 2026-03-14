@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Humdrum</title>
+    <style>
+        /* Fonts */
+        @font-face {
+            font-family: 'Resistance';
+            src: url('fonts/Resistance.otf') format('opentype');
+            font-display: swap;
+        }
+        
+        @font-face {
+            font-family: 'At Textual';
+            src: url('fonts/AtTextual-Regular.woff2') format('woff2');
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+        }
+        
+        @font-face {
+            font-family: 'At Textual';
+            src: url('fonts/AtTextual-Semibold.woff2') format('woff2');
+            font-weight: 600;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        /* Tokens */
+        :root {
+            --black: #111;
+            --white: #fff;
+            --gray-1: #f4f4f4;
+            --gray-2: #e8e8e8;
+            --gray-3: #aaa;
+            --gap: 1px;
+            --font: 'At Textual', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            --font-display: 'Resistance', serif;
+        }
+
+        *, *:before, *:after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-family: var(--font);
+            font-size: 18px;
+            color: var(--black);
+            background: var(--gray-2);
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            padding: 1.1rem 1.5rem 1rem;
+            background: var(--black);
+            color: var(--white);
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+
+        header h1 {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        .auth-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: baseline;
+        }
+
+        .user-info {
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--gray-3);
+        }
+
+        .btn-auth {
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            background: none;
+            border: 1px solid var(--gray-3);
+            color: var(--gray-3);
+            padding: 0.35rem 0.75rem;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-auth:hover {
+            border-color: var(--white);
+            color: var(--white);
+        }
+
+        /* Main content */
+        main {
+            flex: 1;
+            padding: 3rem 2.5rem;
+            background: var(--white);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .page-title {
+            font-family: var(--font-display);
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--gray-3);
+            margin-bottom: 0.4rem;
+        }
+
+        .page-heading {
+            font-size: 1.75rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-desc {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: #444;
+            max-width: 640px;
+            margin-bottom: 2.5rem;
+        }
+
+        /* App grid */
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: var(--gap);
+        }
+
+        .app-card {
+            background: var(--white);
+            padding: 1.75rem 1.5rem;
+            text-decoration: none;
+            color: var(--black);
+            border-left: 3px solid var(--gray-2);
+            display: flex;
+            flex-direction: column;
+            transition: border-color 0.1s, background 0.1s;
+            min-height: 200px;
+        }
+
+        .app-card:hover {
+            background: var(--gray-1);
+            border-left-color: var(--black);
+        }
+
+        .app-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--black);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.25rem;
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            letter-spacing: 0.1em;
+            color: var(--white);
+        }
+
+        .app-card-name {
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .app-card-url {
+            font-family: var(--font-display);
+            font-size: 0.58rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--gray-3);
+            margin-bottom: 1rem;
+        }
+
+        .app-card-desc {
+            font-size: 0.82rem;
+            line-height: 1.5;
+            color: #444;
+            margin-top: auto;
+        }
+
+        /* Auth screen overlay */
+        .auth-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--white);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-screen.active {
+            display: flex;
+        }
+
+        .auth-content {
+            text-align: center;
+            max-width: 400px;
+            padding: 3rem 2rem;
+        }
+
+        .auth-content h2 {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+
+        .auth-content p {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: var(--gray-3);
+            margin-bottom: 2rem;
+        }
+
+        #clerk-signin,
+        #clerk-signup {
+            margin: 2rem 0;
+        }
+
+        .btn-close-auth {
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            background: none;
+            border: 1px solid var(--gray-2);
+            color: var(--gray-3);
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+
+        .btn-close-auth:hover {
+            border-color: var(--black);
+            color: var(--black);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header {
+                padding: 1rem;
+            }
+
+            header h1 {
+                font-size: 1.2rem;
+            }
+
+            main {
+                padding: 2rem 1.5rem;
+            }
+
+            .app-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Humdrum</h1>
+        <div class="auth-controls">
+            <span class="user-info" id="user-display"></span>
+            <button class="btn-auth" id="auth-btn">Sign In</button>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="page-title">Apps</div>
+            <h2 class="page-heading">Tools</h2>
+            <p class="page-desc">A collection of focused, single-purpose applications. Each one designed to do one thing (moderately) well.</p>
+
+            <div class="app-grid">
+                <a href="https://base.humdrum.one" class="app-card">
+                    <div class="app-icon">🏭</div>
+                    <div class="app-card-name">Base</div>
+                    <div class="app-card-url">base.humdrum.one</div>
+                    <p class="app-card-desc">Simple and flexible databases for collecting, tracking, rating, and more.</p>
+                </a>
+
+                <a href="https://ten.humdrum.one" class="app-card">
+                    <div class="app-icon">🤙</div>
+                    <div class="app-card-name">Ten</div>
+                    <div class="app-card-url">ten.humdrum.one</div>
+                    <p class="app-card-desc">Create your top ten lists of the year for Movies, Shows, Albums, and Comics.</p>
+                </a>
+
+                <a href="https://trio.humdrum.one" class="app-card">
+                    <div class="app-icon">🕒</div>
+                    <div class="app-card-name">Trio</div>
+                    <div class="app-card-url">trio.humdrum.one</div>
+                    <p class="app-card-desc">A suite of three apps working together as one: simple kanban task manager, simple note app with daily notes and wikilinks, and a small media collection.</p>
+                </a>
+
+                <a href="https://scream.humdrum.one" class="app-card">
+                    <div class="app-icon">😱</div>
+                    <div class="app-card-name">Screamer News</div>
+                    <div class="app-card-url">screamer.humdrum.one</div>
+                    <p class="app-card-desc">Four simple news digests to stay on top of Politics, Tech, Sports, and Culture—each delivered once a day.</p>
+                </a>
+
+                <a href="https://streak.humdrum.one" class="app-card">
+                    <div class="app-icon">🥱</div>
+                    <div class="app-card-name">Boring Reviews</div>
+                    <div class="app-card-url">boring.humdrum.one</div>
+                    <p class="app-card-desc">Build streaks. Track daily actions and maintain momentum over time.</p>
+                </a>
+
+                <a href="https://log.humdrum.one" class="app-card">
+                    <div class="app-icon">🫟</div>
+                    <div class="app-card-name">Fuss</div>
+                    <div class="app-card-url">fuss.humdrum.one</div>
+                    <p class="app-card-desc">Coming soon: a collaborative text-editor with track changes.</p>
+                </a>
+            
+               <a href="https://dots.humdrum.one" class="app-card">
+                    <div class="app-icon">🛟</div>
+                    <div class="app-card-name">Dots</div>
+                    <div class="app-card-url">dots.humdrum.one</div>
+                    <p class="app-card-desc">Coming soon: a simple way to visualize, plan, and track your time.</p>
+                </a>
+                
+            </div>
+        </div>
+        </br>
+          <div class="container">
+            <div class="page-title">Publications</div>
+            <h2 class="page-heading">Words</h2>
+            <p class="page-desc">A collection of sites that publish (half-decent) words.</p>
+
+            <div class="app-grid">
+                <a href="https://foofaraw.press" class="app-card">
+                    <div class="app-icon">🔍</div>
+                    <div class="app-card-name">Foofaraw</div>
+                    <div class="app-card-url">foofaraw.press</div>
+                    <p class="app-card-desc">A zine and indie publisher of surreal storytelling and worldly observations.</p>
+                </a>
+                
+                  <a href="https://tiv.today" class="app-card">
+                    <div class="app-icon">🔗</div>
+                    <div class="app-card-name">The Independent Variable</div>
+                    <div class="app-card-url">tiv.today</div>
+                    <p class="app-card-desc">The official linkblog of the interwebs covering culture, politics, sports, and tech since 2012.</p>
+                </a>
+                
+                <a href="https://qb.foofaraw.press" class="app-card">
+                    <div class="app-icon">🥖</div>
+                    <div class="app-card-name">Quotidian Bagatelle</div>
+                    <div class="app-card-url">qb.foofaraw.press</div>
+                    <p class="app-card-desc">A micro imprint of Foofaraw Press publishing stories under 250 words.</p>
+                </a>
+                
+                <a href="https://humdrum.me" class="app-card">
+                    <div class="app-icon">🤦‍♂️</div>
+                    <div class="app-card-name">A Humdrum Life</div>
+                    <div class="app-card-url">humdrum.me</div>
+                    <p class="app-card-desc">A personal blog.</p>
+                </a>
+                
+                <a href="https://humdrum.industries" class="app-card">
+                    <div class="app-icon">🖥️</div>
+                    <div class="app-card-name">Humdrum Industries LLC</div>
+                    <div class="app-card-url">humdrum.industries</div>
+                    <p class="app-card-desc">A small indie consulting company and the home of all these things.</p>
+                </a>
+                
+               </div>
+        </div>             
+            
+    </main>
+
+    <!-- Auth overlay -->
+    <div class="auth-screen" id="auth-screen">
+        <div class="auth-content">
+            <h2>Humdrum</h2>
+            <p>Sign in to access your apps and sync your data across devices.</p>
+            <div id="clerk-signin"></div>
+            <button class="btn-close-auth" id="close-auth">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Clerk integration - Add your publishable key -->
+    <script>
+        // Clerk configuration
+        const CLERK_PUBLISHABLE_KEY = 'YOUR_CLERK_PUBLISHABLE_KEY_HERE';
+        
+        // Mock authentication state for demonstration
+        let isAuthenticated = false;
+        let currentUser = null;
+
+        const authBtn = document.getElementById('auth-btn');
+        const userDisplay = document.getElementById('user-display');
+        const authScreen = document.getElementById('auth-screen');
+        const closeAuthBtn = document.getElementById('close-auth');
+
+        function updateAuthUI() {
+            if (isAuthenticated && currentUser) {
+                userDisplay.textContent = currentUser.firstName || currentUser.email;
+                authBtn.textContent = 'Sign Out';
+            } else {
+                userDisplay.textContent = '';
+                authBtn.textContent = 'Sign In';
+            }
+        }
+
+        authBtn.addEventListener('click', () => {
+            if (isAuthenticated) {
+                // Sign out
+                isAuthenticated = false;
+                currentUser = null;
+                updateAuthUI();
+                console.log('User signed out');
+            } else {
+                // Show sign in screen
+                authScreen.classList.add('active');
+            }
+        });
+
+        closeAuthBtn.addEventListener('click', () => {
+            authScreen.classList.remove('active');
+        });
+
+        // Initialize
+        updateAuthUI();
+
+    </script>
+</body>
+</html>
+
